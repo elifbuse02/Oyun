@@ -1,0 +1,278 @@
+><!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elif ile Barış'ın Aşk Testi</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #FFD1DC; /* Açık toz pembe arka plan */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .container {
+            text-align: center;
+            max-width: 90%;
+            z-index: 1;
+        }
+        
+        h1 {
+            color: #D35780;
+            margin-bottom: 30px;
+        }
+        
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        button {
+            padding: 15px 25px;
+            font-size: 18px;
+            background-color: #D35780; /* Koyu pembe şıklar */
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+        
+        button:hover {
+            transform: scale(1.05);
+            background-color: #C04A70;
+        }
+        
+        .result {
+            margin-top: 30px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #D35780;
+        }
+        
+        .result-image {
+            max-width: 80%;
+            max-height: 300px;
+            border-radius: 15px;
+            margin-top: 20px;
+        }
+        
+        .emoji {
+            position: absolute;
+            font-size: 24px;
+            animation: float 5s infinite ease-in-out;
+            opacity: 0.7;
+            z-index: 0;
+        }
+        
+        @keyframes float {
+            0% {
+                transform: translateY(0) rotate(0deg);
+            }
+            50% {
+                transform: translateY(-100px) rotate(180deg);
+            }
+            100% {
+                transform: translateY(0) rotate(360deg);
+            }
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="quiz-container">
+        <h1 id="question">Soru buraya gelecek</h1>
+        <div class="options" id="options">
+            <!-- Butonlar buraya eklenecek -->
+        </div>
+    </div>
+    
+    <div class="container hidden" id="result-container">
+        <div class="result" id="result-text"></div>
+        <img class="result-image" id="result-image" src="" alt="Sonuç resmi">
+        <button id="next-button" class="hidden">Sonraki Soru</button>
+        <button id="restart-button" class="hidden">Başa Dön</button>
+    </div>
+    
+    <div class="container hidden" id="final-screen">
+        <h1>Kahramanıma Kavuştum!</h1>
+        <img class="result-image" src="https://i.ibb.co/yBBwpwwq/BE15-EB52-3-F84-4-C17-898-A-899815117-CCC.png" alt="Final resmi">
+    </div>
+
+    <script>
+        // Sorular ve cevaplar
+        const questions = [
+            {
+                question: "En sevdiğimiz film serisi?",
+                correct: "Star wars serisi",
+                wrong: "harry potter serisi"
+            },
+            {
+                question: "İlk buluşmamız nerede oldu?",
+                correct: "espresso lab",
+                wrong: "colombia"
+            },
+            {
+                question: "İlk öpücüğümüz neredeydi?",
+                correct: "Eskişehir",
+                wrong: "Konya"
+            },
+            {
+                question: "En sevdiğim tatlı nedir?",
+                correct: "profiterol",
+                wrong: "ekler"
+            },
+            {
+                question: "Kim daha romantik?",
+                correct: "elif",
+                wrong: "Barış"
+            },
+            {
+                question: "İlk kim 'seni seviyorum' dedi?",
+                correct: "Barış",
+                wrong: "Elif"
+            },
+            {
+                question: "İlk kim hoşlandığını söyledi?",
+                correct: "Elif",
+                wrong: "Barış"
+            },
+            {
+                question: "Beraber en çok hangi aktiviteyi yapıyoruz?",
+                correct: "sarılmak",
+                wrong: "yürüyüş"
+            },
+            {
+                question: "En kıskanç kim?",
+                correct: "Barış",
+                wrong: "Elif"
+            },
+            {
+                question: "Gelecekte seninle beraber gitmeyi en çok istediğim yer?",
+                correct: "Paris",
+                wrong: "ABD"
+            }
+        ];
+        
+        // Oyun durumu
+        let currentQuestion = 0;
+        let score = 0;
+        
+        // DOM elementleri
+        const quizContainer = document.getElementById('quiz-container');
+        const resultContainer = document.getElementById('result-container');
+        const finalScreen = document.getElementById('final-screen');
+        const questionElement = document.getElementById('question');
+        const optionsElement = document.getElementById('options');
+        const resultText = document.getElementById('result-text');
+        const resultImage = document.getElementById('result-image');
+        const nextButton = document.getElementById('next-button');
+        const restartButton = document.getElementById('restart-button');
+        
+        // Emoji oluştur
+        function createEmojis() {
+            const emojiCount = 20;
+            for (let i = 0; i < emojiCount; i++) {
+                const emoji = document.createElement('div');
+                emoji.className = 'emoji';
+                emoji.textContent = '💝';
+                emoji.style.left = Math.random() * 100 + 'vw';
+                emoji.style.top = Math.random() * 100 + 'vh';
+                emoji.style.animationDuration = (Math.random() * 5 + 3) + 's';
+                emoji.style.animationDelay = Math.random() * 5 + 's';
+                document.body.appendChild(emoji);
+            }
+        }
+        
+        // Soruyu göster
+        function showQuestion() {
+            const question = questions[currentQuestion];
+            questionElement.textContent = question.question;
+            
+            optionsElement.innerHTML = '';
+            
+            // Şıkları karıştır
+            const options = [question.correct, question.wrong];
+            if (Math.random() > 0.5) options.reverse();
+            
+            options.forEach(option => {
+                const button = document.createElement('button');
+                button.textContent = option;
+                button.addEventListener('click', () => checkAnswer(option));
+                optionsElement.appendChild(button);
+            });
+        }
+        
+        // Cevabı kontrol et
+        function checkAnswer(selectedAnswer) {
+            const question = questions[currentQuestion];
+            const isCorrect = selectedAnswer === question.correct;
+            
+            quizContainer.classList.add('hidden');
+            resultContainer.classList.remove('hidden');
+            
+            if (isCorrect) {
+                resultText.textContent = "Aferin aşkıma doğru yaptın";
+                resultImage.src = "https://i.ibb.co/LdnsYxz2/IMG-5728.jpg";
+                score++;
+                
+                if (currentQuestion < questions.length - 1) {
+                    nextButton.classList.remove('hidden');
+                    restartButton.classList.add('hidden');
+                } else {
+                    // Son soru doğru cevaplandı
+                    setTimeout(() => {
+                        resultContainer.classList.add('hidden');
+                        finalScreen.classList.remove('hidden');
+                    }, 3000);
+                }
+            } else {
+                resultText.textContent = "Bunu nasıl yanlış yaparsın başa dönüyorsun";
+                resultImage.src = "https://i.ibb.co/RkZQM1g7/IMG-5716.jpg";
+                nextButton.classList.add('hidden');
+                restartButton.classList.remove('hidden');
+            }
+        }
+        
+        // Sonraki soruya geç
+        function nextQuestion() {
+            currentQuestion++;
+            nextButton.classList.add('hidden');
+            resultContainer.classList.add('hidden');
+            quizContainer.classList.remove('hidden');
+            showQuestion();
+        }
+        
+        // Oyuna yeniden başla
+        function restartGame() {
+            currentQuestion = 0;
+            score = 0;
+            restartButton.classList.add('hidden');
+            resultContainer.classList.add('hidden');
+            quizContainer.classList.remove('hidden');
+            showQuestion();
+        }
+        
+        // Event listener'lar
+        nextButton.addEventListener('click', nextQuestion);
+        restartButton.addEventListener('click', restartGame);
+        
+        // Oyunu başlat
+        createEmojis();
+        showQuestion();
+    </script>
+</body>
+</html>
